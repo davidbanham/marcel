@@ -2,7 +2,7 @@
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/davidbanham/marcel)](https://pkg.go.dev/github.com/davidbanham/marcel)
 
-Marcel is a tool to generate IETF compliant emails in raw MIME format. I mainly use this for generating emails with attachments and sending them via amazon SES. If that's what you're doing too, you may want (https://github.com/davidbanham/notifications)[notifications]
+Marcel is a tool to generate IETF compliant emails in raw MIME format. I mainly use this for generating emails with attachments and sending them via amazon SES. If that's what you're doing too, you may want [notifications](https://github.com/davidbanham/notifications)
 
 Marcel supports:
 * HTML bodies
@@ -14,7 +14,7 @@ Marcel supports:
 Marcel does not support:
 * Inline attachments
 
-Marcel endeavours to pass the (https://tools.ietf.org/tools/msglint/)[IETF Msglint] tool with no errors (aside from ReturnPath). If you have a payload that generates errors please file an issue.
+Marcel endeavours to pass the [IETF Msglint](https://tools.ietf.org/tools/msglint/) tool with no errors (aside from ReturnPath). If you have a payload that generates errors please file an issue.
 
 ## Example
 
