@@ -22,8 +22,9 @@ Marcel endeavours to pass the [IETF Msglint](https://tools.ietf.org/tools/msglin
 package main
 
 import (
+	"fmt"
+	"log"
 	"strings"
-  "log"
 
 	"github.com/davidbanham/marcel"
 )
@@ -45,10 +46,10 @@ func main() {
 		},
 	}
 
-  rawEmail, err := mail.ToMIME()
-  if err != nil {
-    log.Fatal(err)
-  }
-  fmt.Println(string(rawEmail))
+	rawEmail, err := mail.ToMIME()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(rawEmail))
 }
 ```
