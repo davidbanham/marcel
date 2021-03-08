@@ -9,6 +9,7 @@ Marcel supports:
 * Text bodies
 * Emails with only an HTML or Text body
 * Attachments
+* JSON serialisation of emails and attachments
 
 Marcel does not support:
 * Inline attachments
