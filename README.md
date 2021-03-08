@@ -48,6 +48,6 @@ func main() {
   if err != nil {
     log.Fatal(err)
   }
-  fmt.Println(rawEmail)
+  fmt.Println(string(rawEmail))
 }
 ```
