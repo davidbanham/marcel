@@ -14,7 +14,7 @@ Marcel supports:
 Marcel does not support:
 * Inline attachments
 
-Marcel endeavours to pass the (https://tools.ietf.org/tools/msglint/)[IETF Msglint] tool with no errors. If you have a payload that generates errors please file an issue.
+Marcel endeavours to pass the (https://tools.ietf.org/tools/msglint/)[IETF Msglint] tool with no errors (aside from ReturnPath). If you have a payload that generates errors please file an issue.
 
 ## Example
 

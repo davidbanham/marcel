@@ -34,6 +34,14 @@ type Attachment struct {
 //  `- attachments..
 
 func (email Email) ToMIME() ([]byte, error) {
+	dest := bytes.NewBuffer([]byte{})
+	if err := email.WriteMime(dest); err != nil {
+		return []byte{}, err
+	}
+	return dest.Bytes(), nil
+}
+
+func (email Email) WriteMime(dest io.Writer) error {
 	mixedContent := &bytes.Buffer{}
 	mixedWriter := multipart.NewWriter(mixedContent)
 
@@ -43,34 +51,40 @@ func (email Email) ToMIME() ([]byte, error) {
 
 	relatedWriter, newBoundary, err := nestedMultipart(mixedWriter, "multipart/related", newBoundary)
 	if err != nil {
-		return []byte{}, err
+		return err
 	}
 	altWriter, newBoundary, err := nestedMultipart(relatedWriter, "multipart/alternative", "ALTERNATIVE-"+newBoundary)
 	if err != nil {
-		return []byte{}, err
+		return err
 	}
 
 	if email.Text != "" {
 		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/plain"}})
 		if err != nil {
-			return []byte{}, err
+			return err
 		}
 		childContent.Write([]byte(email.Text + "\r\n\r\n"))
 	}
 	if email.HTML != "" {
 		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/html"}})
 		if err != nil {
-			return []byte{}, err
+			return err
 		}
 		childContent.Write([]byte(email.HTML + "\r\n"))
 	}
 
 	if err := altWriter.Close(); err != nil {
-		return []byte{}, err
+		return err
 	}
 	if err := relatedWriter.Close(); err != nil {
-		return []byte{}, err
+		return err
 	}
+
+	dest.Write([]byte("From: " + email.From + "\r\n"))
+	dest.Write([]byte("MIME-Version: 1.0\r\n"))
+	dest.Write([]byte("Date: " + time.Now().Format(time.RFC1123Z) + "\r\n"))
+	dest.Write([]byte("To: " + email.To + "\r\n"))
+	dest.Write([]byte("Subject: " + email.Subject + "\r\n"))
 
 	// Attachments
 	for _, attachment := range email.Attachments {
@@ -84,35 +98,30 @@ func (email Email) ToMIME() ([]byte, error) {
 			},
 		})
 		if err != nil {
-			return []byte{}, err
+			return err
 		}
 		//func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser {
 		enc := base64.NewEncoder(base64.StdEncoding, fileContent)
 		if _, err := io.Copy(enc, attachment.Data); err != nil {
-			return []byte{}, err
+			return err
 		}
 		if err := enc.Close(); err != nil {
-			return []byte{}, err
+			return err
 		}
 		fileContent.Write([]byte("\r\n\r\n"))
 	}
 
-	if err := mixedWriter.Close(); err != nil {
-		return []byte{}, err
+	dest.Write([]byte("Content-Type: multipart/mixed; boundary="))
+	dest.Write([]byte(`"` + mixedWriter.Boundary() + "\"\r\n\r\n"))
+	if _, err := io.Copy(dest, mixedContent); err != nil {
+		return err
 	}
 
-	rawEmail := []byte{}
-	rawEmail = append(rawEmail, []byte("From: "+email.From+"\r\n")...)
-	rawEmail = append(rawEmail, []byte("MIME-Version: 1.0\r\n")...)
-	rawEmail = append(rawEmail, []byte("Date: "+time.Now().Format(time.RFC1123Z)+"\r\n")...)
-	rawEmail = append(rawEmail, []byte("To: "+email.To+"\r\n")...)
-	rawEmail = append(rawEmail, []byte("Subject: "+email.Subject+"\r\n")...)
-	rawEmail = append(rawEmail, []byte("Content-Type: multipart/mixed; boundary=")...)
-	rawEmail = append(rawEmail, []byte(`"`+mixedWriter.Boundary()+"\"\r\n\r\n")...)
-	rawEmail = append(rawEmail, []byte(mixedContent.String())...)
+	if err := mixedWriter.Close(); err != nil {
+		return err
+	}
 
-	return rawEmail, nil
-
+	return nil
 }
 
 func nestedMultipart(enclosingWriter *multipart.Writer, contentType, boundary string) (*multipart.Writer, string, error) {
