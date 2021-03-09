@@ -123,6 +123,7 @@ func (email Email) WriteMime(dest io.Writer) error {
 	if _, err := io.Copy(dest, mixedContent); err != nil {
 		return err
 	}
+	dest.Write([]byte("--" + mixedWriter.Boundary() + "--\r\n\r\n"))
 
 	if err := mixedWriter.Close(); err != nil {
 		return err
