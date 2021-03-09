@@ -59,14 +59,22 @@ func (email Email) WriteMime(dest io.Writer) error {
 	}
 
 	if email.Text != "" {
-		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/plain"}})
+		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{
+			"Content-Type":              {"text/plain"},
+			"Content-Transfer-Encoding": {"quoted-printable"},
+			"Content-Disposition":       {"inline"},
+		})
 		if err != nil {
 			return err
 		}
 		childContent.Write([]byte(email.Text + "\r\n\r\n"))
 	}
 	if email.HTML != "" {
-		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/html"}})
+		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{
+			"Content-Type":              {"text/html"},
+			"Content-Transfer-Encoding": {"quoted-printable"},
+			"Content-Disposition":       {"inline"},
+		})
 		if err != nil {
 			return err
 		}
