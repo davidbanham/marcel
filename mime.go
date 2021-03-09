@@ -38,7 +38,7 @@ func (email Email) ToMIME() ([]byte, error) {
 	if err := email.WriteMime(dest); err != nil {
 		return []byte{}, err
 	}
-	return dest.Bytes(), nil
+	return io.ReadAll(dest)
 }
 
 func (email Email) WriteMime(dest io.Writer) error {
