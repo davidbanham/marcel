@@ -46,14 +46,14 @@ func (email Email) WriteMime(dest io.Writer) error {
 	mixedWriter := multipart.NewWriter(mixedContent)
 
 	// related content, inside mixed
-	var newBoundary = "RELATED-" + mixedWriter.Boundary()
+	var relatedBoundary = "RELATED-" + mixedWriter.Boundary()
 	mixedWriter.SetBoundary(first70("MIXED-" + mixedWriter.Boundary()))
 
-	relatedWriter, newBoundary, err := nestedMultipart(mixedWriter, "multipart/related", newBoundary)
+	relatedWriter, alternativeBoundary, err := nestedMultipart(mixedWriter, "multipart/related", relatedBoundary)
 	if err != nil {
 		return err
 	}
-	altWriter, newBoundary, err := nestedMultipart(relatedWriter, "multipart/alternative", "ALTERNATIVE-"+newBoundary)
+	altWriter, _, err := nestedMultipart(relatedWriter, "multipart/alternative", "ALTERNATIVE-"+alternativeBoundary)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,6 @@ func (email Email) WriteMime(dest io.Writer) error {
 		if err != nil {
 			return err
 		}
-		//func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser {
 		enc := base64.NewEncoder(base64.StdEncoding, fileContent)
 		if _, err := io.Copy(enc, attachment.Data); err != nil {
 			return err
