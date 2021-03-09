@@ -90,6 +90,9 @@ func (email Email) WriteMime(dest io.Writer) error {
 
 	dest.Write([]byte("From: " + email.From + "\r\n"))
 	dest.Write([]byte("To: " + email.To + "\r\n"))
+	if email.ReplyTo != "" {
+		dest.Write([]byte("Reply-To: " + email.ReplyTo + "\r\n"))
+	}
 	dest.Write([]byte("Subject: " + email.Subject + "\r\n"))
 	dest.Write([]byte("Date: " + time.Now().Format(time.RFC1123Z) + "\r\n"))
 	dest.Write([]byte("MIME-Version: 1.0\r\n"))
