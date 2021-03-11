@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"io"
 	"mime/multipart"
+	"mime/quotedprintable"
 	"net/textproto"
 	"time"
 )
@@ -67,7 +68,8 @@ func (email Email) WriteMime(dest io.Writer) error {
 		if err != nil {
 			return err
 		}
-		childContent.Write([]byte(email.Text + "\r\n\r\n"))
+		enc := quotedprintable.NewWriter(childContent)
+		enc.Write([]byte(email.Text + "\r\n\r\n"))
 	}
 	if email.HTML != "" {
 		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{
@@ -78,7 +80,8 @@ func (email Email) WriteMime(dest io.Writer) error {
 		if err != nil {
 			return err
 		}
-		childContent.Write([]byte(email.HTML + "\r\n"))
+		enc := quotedprintable.NewWriter(childContent)
+		enc.Write([]byte(email.HTML + "\r\n\r\n"))
 	}
 
 	if err := altWriter.Close(); err != nil {
