@@ -3,6 +3,7 @@ package marcel
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"mime/quotedprintable"
@@ -97,17 +98,12 @@ func (email Email) WriteMime(dest io.Writer) error {
 		dest.Write([]byte("Reply-To: " + email.ReplyTo + "\r\n"))
 	}
 
-	var subBuf bytes.Buffer
-	subject := quotedprintable.NewWriter(&subBuf)
-	if _, err := subject.Write([]byte(email.Subject)); err != nil {
+	subjectHeader, err := encodeHeader("Subject", email.Subject)
+	if err != nil {
 		return err
 	}
+	dest.Write([]byte(subjectHeader))
 
-	if err := subject.Close(); err != nil {
-		return err
-	}
-
-	dest.Write([]byte("Subject: =?utf-8?Q?" + subBuf.String() + "?=\r\n"))
 	dest.Write([]byte("Date: " + time.Now().Format(time.RFC1123Z) + "\r\n"))
 	dest.Write([]byte("MIME-Version: 1.0\r\n"))
 
@@ -174,4 +170,76 @@ func first70(str string) string {
 		return string(str[0:69])
 	}
 	return str
+}
+
+func encodeHeader(name, content string) (string, error) {
+	encoded, err := encodeWord(content)
+	if err != nil {
+		return "", err
+	}
+
+	headerLine := fmt.Sprintf("%s: =?utf-8?Q?%s?=", name, encoded)
+	if len(headerLine) < 75 {
+		return headerLine + "\r\n", nil
+	}
+
+	var ret string
+
+	// Chunk the header in 48 character segments. The maximum length is 75 including the "Subject: " and other encoding line noise.
+	// We could go 48 on the first and 59 on subsequent lines but it's just not worth the effort
+	chunks := chunkString(content, 48)
+	for i, chunk := range chunks {
+		encoded, err := encodeWord(chunk)
+		if err != nil {
+			return "", err
+		}
+
+		if i == 0 {
+			ret += fmt.Sprintf("%s: =?utf-8?Q?%s?=\r\n ", name, encoded)
+		} else if i+1 == len(chunks) {
+			// For the last chunk, no trailing space
+			ret += fmt.Sprintf("=?utf-8?Q?%s?=\r\n", encoded)
+		} else {
+			// Multi-line headers are denoted by the CLRF followed by a SPACE
+			ret += fmt.Sprintf("=?utf-8?Q?%s?=\r\n ", encoded)
+		}
+	}
+
+	return ret, nil
+}
+
+func encodeWord(str string) (string, error) {
+	var buf bytes.Buffer
+	writer := quotedprintable.NewWriter(&buf)
+	if _, err := writer.Write([]byte(str)); err != nil {
+		return "", err
+	}
+
+	if err := writer.Close(); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+}
+
+func chunkString(s string, chunkSize int) []string {
+	if len(s) == 0 {
+		return nil
+	}
+	if chunkSize >= len(s) {
+		return []string{s}
+	}
+	var chunks []string = make([]string, 0, (len(s)-1)/chunkSize+1)
+	currentLen := 0
+	currentStart := 0
+	for i := range s {
+		if currentLen == chunkSize {
+			chunks = append(chunks, s[currentStart:i])
+			currentLen = 0
+			currentStart = i
+		}
+		currentLen++
+	}
+	chunks = append(chunks, s[currentStart:])
+	return chunks
 }
