@@ -96,7 +96,18 @@ func (email Email) WriteMime(dest io.Writer) error {
 	if email.ReplyTo != "" {
 		dest.Write([]byte("Reply-To: " + email.ReplyTo + "\r\n"))
 	}
-	dest.Write([]byte("Subject: " + email.Subject + "\r\n"))
+
+	var subBuf bytes.Buffer
+	subject := quotedprintable.NewWriter(&subBuf)
+	if _, err := subject.Write([]byte(email.Subject)); err != nil {
+		return err
+	}
+
+	if err := subject.Close(); err != nil {
+		return err
+	}
+
+	dest.Write([]byte("Subject: =?utf-8?Q?" + subBuf.String() + "?=\r\n"))
 	dest.Write([]byte("Date: " + time.Now().Format(time.RFC1123Z) + "\r\n"))
 	dest.Write([]byte("MIME-Version: 1.0\r\n"))
 

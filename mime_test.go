@@ -64,6 +64,14 @@ func TestMime(t *testing.T) {
 			HTML:    "this is the <i>html</i>, and only, part of a test run",
 			Subject: "html only test run",
 		},
+		Email{
+			To:      "to@example.com",
+			From:    "from@example.com",
+			ReplyTo: "reply_to@example.com",
+			Text:    "this is the text part of a test run",
+			HTML:    "this is the <b>HTML</b> part of a test run",
+			Subject: "Non-ASCII subject - “–“ - test run",
+		},
 	}
 
 	for _, email := range testEmails {
