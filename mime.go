@@ -9,6 +9,7 @@ import (
 	"mime/quotedprintable"
 	"net/textproto"
 	"time"
+	"unicode"
 )
 
 type Email struct {
@@ -172,7 +173,22 @@ func first70(str string) string {
 	return str
 }
 
+func isASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] > unicode.MaxASCII {
+			return false
+		}
+	}
+	return true
+}
+
 func encodeHeader(name, content string) (string, error) {
+	if isASCII(content) {
+		if len(content) < 66 {
+			return fmt.Sprintf("%s: %s\r\n", name, content), nil
+		}
+	}
+
 	encoded, err := encodeWord(content)
 	if err != nil {
 		return "", err
