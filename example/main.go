@@ -10,12 +10,13 @@ import (
 
 func main() {
 	mail := marcel.Email{
-		To:      "to@example.com",
-		From:    "from@example.com",
-		ReplyTo: "reply_to@example.com", // optional
-		Text:    "This is the important information in text format",
-		HTML:    "This is the important information in <b>HTML</b> format",
-		Subject: "A really important email",
+		To:         "to@example.com",
+		From:       "from@example.com",
+		ReplyTo:    "reply_to@example.com",    // optional
+		ReturnPath: "return_path@example.com", // optional
+		Text:       "This is the important information in text format",
+		HTML:       "This is the important information in <b>HTML</b> format",
+		Subject:    "A really important email",
 		Attachments: []marcel.Attachment{
 			marcel.Attachment{
 				ContentType: "text/plain",

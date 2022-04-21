@@ -16,6 +16,7 @@ type Email struct {
 	To          string
 	From        string
 	ReplyTo     string
+	ReturnPath  string
 	Text        string
 	HTML        string
 	Subject     string
@@ -95,6 +96,11 @@ func (email Email) WriteMime(dest io.Writer) error {
 
 	dest.Write([]byte("From: " + email.From + "\r\n"))
 	dest.Write([]byte("To: " + email.To + "\r\n"))
+	if email.ReturnPath != "" {
+		dest.Write([]byte("Return-Path: <" + email.ReturnPath + ">\r\n"))
+	} else {
+		dest.Write([]byte("Return-Path: <" + email.From + ">\r\n"))
+	}
 	if email.ReplyTo != "" {
 		dest.Write([]byte("Reply-To: " + email.ReplyTo + "\r\n"))
 	}
