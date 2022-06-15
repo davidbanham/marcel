@@ -97,7 +97,7 @@ func (email Email) WriteMime(dest io.Writer) error {
 	dest.Write([]byte("From: " + email.From + "\r\n"))
 	dest.Write([]byte("To: " + email.To + "\r\n"))
 	if email.ReturnPath != "" {
-		if email.ReturnPath[0] == "<" {
+		if string(email.ReturnPath[0]) == "<" {
 			dest.Write([]byte("Return-Path: " + email.ReturnPath + "\r\n"))
 		} else {
 			dest.Write([]byte("Return-Path: <" + email.ReturnPath + ">\r\n"))
