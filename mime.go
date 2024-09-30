@@ -64,7 +64,7 @@ func (email Email) WriteMime(dest io.Writer) error {
 
 	if email.Text != "" {
 		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{
-			"Content-Type":              {"text/plain"},
+			"Content-Type":              {"text/plain; charset=\"UTF-8\""},
 			"Content-Transfer-Encoding": {"quoted-printable"},
 			"Content-Disposition":       {"inline"},
 		})
@@ -76,7 +76,7 @@ func (email Email) WriteMime(dest io.Writer) error {
 	}
 	if email.HTML != "" {
 		childContent, err := altWriter.CreatePart(textproto.MIMEHeader{
-			"Content-Type":              {"text/html"},
+			"Content-Type":              {"text/html; charset=\"UTF-8\""},
 			"Content-Transfer-Encoding": {"quoted-printable"},
 			"Content-Disposition":       {"inline"},
 		})
