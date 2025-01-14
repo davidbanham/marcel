@@ -88,14 +88,28 @@ func TestMime(t *testing.T) {
 			HTML:    "This contains weird non breaking spaces Dear [[",
 			Subject: "Text encodings are a pain in the bum.",
 		},
+		Email{
+			To:      "to@example.com",
+			From:    "from@example.com",
+			ReplyTo: "reply_to@example.com",
+			Text:    "this is the text part of a cutom header mail",
+			HTML:    "this <i>is the HTML part of a custom header</i> run",
+			Subject: "custom header",
+			Headers: map[string]string{
+				"X-Auto-Response-Suppress": "AutoReply, OOF, RN, NRN",
+			},
+		},
 	}
 
 	for _, email := range testEmails {
-
 		result, err := email.ToMIME()
 		assert.Nil(t, err)
 
-		_, err = mail.ReadMessage(bytes.NewBuffer(result))
+		msg, err := mail.ReadMessage(bytes.NewBuffer(result))
 		assert.Nil(t, err)
+		for k, v := range email.Headers {
+			val := msg.Header.Get(k)
+			assert.Equal(t, v, val)
+		}
 	}
 }

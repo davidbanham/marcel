@@ -21,6 +21,7 @@ type Email struct {
 	HTML        string
 	Subject     string
 	Attachments []Attachment
+	Headers     map[string]string
 }
 
 type Attachment struct {
@@ -140,6 +141,10 @@ func (email Email) WriteMime(dest io.Writer) error {
 		fileContent.Write([]byte("\r\n\r\n"))
 	}
 
+	for k, v := range email.Headers {
+		dest.Write([]byte(fmt.Sprintf("%s: %s", k, v)))
+		dest.Write([]byte("\r\n\r\n"))
+	}
 	dest.Write([]byte("Content-Type: multipart/mixed; boundary="))
 	dest.Write([]byte(`"` + mixedWriter.Boundary() + "\"\r\n\r\n"))
 	if _, err := io.Copy(dest, mixedContent); err != nil {
