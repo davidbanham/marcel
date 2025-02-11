@@ -84,6 +84,15 @@ func TestMime(t *testing.T) {
 			To:      "to@example.com",
 			From:    "from@example.com",
 			ReplyTo: "reply_to@example.com",
+			Text:    "this is the text part of a test run",
+			HTML:    "this is the <b>HTML</b> part of a test run",
+			// Weird double-rune emoji
+			Subject: "XXXXX in 👩‍🏫 Totally Great Company Form That is Goodly is now Requires Some Stuff To Happen [Place: Goodstuff OK]",
+		},
+		Email{
+			To:      "to@example.com",
+			From:    "from@example.com",
+			ReplyTo: "reply_to@example.com",
 			Text:    "This contains weird non breaking spaces Dear [[",
 			HTML:    "This contains weird non breaking spaces Dear [[",
 			Subject: "Text encodings are a pain in the bum.",
