@@ -203,65 +203,32 @@ func encodeHeader(name, content string) (string, error) {
 		}
 	}
 
-	encoded, err := encodeWord(content)
-	if err != nil {
-		return "", err
-	}
-
-	headerLine := fmt.Sprintf("%s: =?utf-8?Q?%s?=", name, encoded)
-	if len(headerLine) < 75 {
-		return headerLine + "\r\n", nil
-	}
-
 	var ret string
 
-	// Chunk the header in 48 character segments. The maximum length is 75 including the "Subject: " and other encoding line noise.
-	// We could go 48 on the first and 59 on subsequent lines but it's just not worth the effort
-	chunks := chunkString(content, 48)
-	for i, chunk := range chunks {
-		encoded, err := encodeWord(chunk)
-		if err != nil {
-			return "", err
-		}
-
-		if i == 0 {
-			ret += fmt.Sprintf("%s: =?utf-8?Q?%s?=\r\n ", name, encoded)
-		} else if i+1 == len(chunks) {
-			// For the last chunk, no trailing space
-			ret += fmt.Sprintf("=?utf-8?Q?%s?=\r\n", encoded)
-		} else {
-			// Multi-line headers are denoted by the CLRF followed by a SPACE
-			ret += fmt.Sprintf("=?utf-8?Q?%s?=\r\n ", encoded)
+	chunks := chunkString(content, 30)
+	if len(chunks) == 1 {
+		ret = chunks[0]
+	} else {
+		for i, chunk := range chunks {
+			if i == 0 {
+				ret += fmt.Sprintf("%s\r\n", encodeWord(chunk))
+			} else {
+				ret += fmt.Sprintf(" %s\r\n", encodeWord(chunk))
+			}
 		}
 	}
+
+	ret = fmt.Sprintf("%s: %s", name, ret)
 
 	return ret, nil
 }
 
-func encodeWord(str string) (string, error) {
-	var buf bytes.Buffer
-	writer := quotedprintable.NewWriter(&buf)
-	if _, err := writer.Write([]byte(str)); err != nil {
-		return "", err
-	}
-
-	if err := writer.Close(); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
+func encodeWord(str string) string {
+	return fmt.Sprintf("=?utf-8?B?%s?=", base64.StdEncoding.EncodeToString([]byte(str)))
 }
 
 func chunkString(s string, chunkSize int) []string {
-	length := 0
-	encoded, err := encodeWord(s)
-	if err != nil {
-		length = len(s)
-	}
-	length = len(encoded)
-	if length == 0 {
-		return nil
-	}
+	length := len(s)
 	if chunkSize >= length {
 		return []string{s}
 	}
